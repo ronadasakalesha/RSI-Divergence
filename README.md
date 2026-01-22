@@ -1,25 +1,63 @@
-# RSI Divergence Trading Strategy
 
-A professional-grade trading bot that monitors **Nifty 50** on **Angel One Smart API** for RSI divergence patterns, identifying potential reversal signals based on price-RSI divergence.
+# 🤖 RSI Divergence Trading Bot
 
-## 📊 Strategy Overview
+This `README.md` details exactly what the **RSI Divergence Bot** does in its current configuration.
 
-This bot implements a **Regular RSI Divergence** strategy based on the following principle:
+## 1. 🕒 Timing & Schedule
+*   **Operating Hours:** 09:15 AM to 03:30 PM IST (Monday - Friday).
+*   **Timezone Handling:** Automatically syncs with IST (UTC +5:30), allowing accurate operation on international servers like PythonAnywhere.
+*   **Execution Cycle:** The bot runs on a **5-minute cycle**:
+    1.  It calculates exactly when the next 5-minute candle will close (e.g., 09:20, 09:25).
+    2.  It waits until that time **plus a 15-second buffer** (e.g., 09:20:15) to ensure data is finalized by the broker.
+*   **Market Status:** If the market is closed, the bot pauses and checks again every 5 minutes.
 
-- **Bearish Divergence (Top)**: Price makes Higher High (HH), RSI makes Lower High (LH) → Potential downward reversal
-- **Bullish Divergence (Bottom)**: Price makes Lower Low (LL), RSI makes Higher Low (HL) → Potential upward reversal
+## 2. 📊 Data Processing
+*   **Asset:** NIFTY 50 Index.
+*   **Source:** Angel One Smart API.
+*   **Data Frame:** Fetches the last 5 days of 5-minute candles to ensure enough history for calculations.
+*   **Technical Indicators:**
+    *   **RSI (Relative Strength Index):** Period 14.
+    *   **Bollinger Bands:** Period 20, Standard Deviation 2.
 
-## 📏 Trading Rules
+## 3. 🧠 The Strategy Logic
+Every 5 minutes, the bot scans **closed candles** for a valid signal. A signal is only generated if **ALL** the following strict conditions are met:
 
-The strategy follows these strict rules:
+### A. The Setup (Point A ➔ Point B)
+*   **Bearish Divergence (Top Reversal):**
+    *   Price Close at B is **Higher** than at A (Higher High).
+    *   RSI at B is **Lower** than at A (Lower High).
+*   **Bullish Divergence (Bottom Reversal):**
+    *   Price Close at B is **Lower** than at A (Lower Low).
+    *   RSI at B is **Higher** than at A (Higher Low).
 
-1. **Candle Distance**: Lower number of candles = Stronger divergence
-2. **Closing Basis**: All comparisons use closing prices
-3. **Distance Requirement**: Minimum 3 candles, Maximum 7 candles between Point A and Point B
-4. **Color Matching**:
-   - Bearish (Top): Green to Green candles
-   - Bullish (Bottom): Red to Red candles
-5. **Candle Counting**: Includes both Point A and Point B in the count
+### B. Strict Filtering Rules
+1.  **Candle Distance:** Point A and Point B must be **3 to 7 candles** apart.
+2.  **Color Matching:**
+    *   **Bearish:** Candle A and Candle B must both be **GREEN**.
+    *   **Bullish:** Candle A and Candle B must both be **RED**.
+3.  **Volume Validation:** Volume at Point A must be > Volume at Point B (Skipped if volume is 0).
+4.  **🌊 Bollinger Band Filter:**
+    *   **Bearish:** At least one candle between A and B (inclusive) must have touched the **Upper Bollinger Band**.
+    *   **Bullish:** At least one candle between A and B (inclusive) must have touched the **Lower Bollinger Band**.
+
+### C. The Confirmation Trigger
+The bot does **not** signal immediately at Point B. It waits for one additional candle (the Confirmation Candle).
+*   **Bearish Signal Trigger:** Requires a **RED** candle immediately following Point B.
+*   **Bullish Signal Trigger:** Requires a **GREEN** candle immediately following Point B.
+
+## 4. 📢 Output & Alerts
+When a Valid Signal is Detected:
+
+1.  **Telegram Alert:** Sends a formatted message to your channel.
+    *   *Includes:* Signal Type (Bullish/Bearish), Time, Pattern (e.g., Green-Green-Red), and Confirmation of BB Touch.
+2.  **Console Logging:** Logs detailed trade data to the terminal/server logs.
+
+### 🚫 Inactive Features (Current State)
+*   **Entry Instructions:** The bot currently **does not** suggest specific "Buy Above/Sell Below" prices (Disabled).
+*   **Auto-Trading:** The bot is a **Scanner Only**. It does not place live orders.
+
+---
+**Summary:** The bot is a high-precision scanner that filters out noise by enforcing strict structural rules, Bollinger Band interactions, and confirmation candles before flagging a potential Nifty 50 reversal.
 
 ## 📁 Folder Structure
 
@@ -34,16 +72,10 @@ rsi_divergence/
 │   └── settings.py        # All configuration parameters
 ├── utils/                 # Utilities
 │   ├── __init__.py
-│   └── api_helpers.py     # Delta Exchange API client
+│   └── api_helpers.py     # API Helper (Angel One)
 ├── tests/                 # Testing and debugging
 │   ├── __init__.py
-│   ├── test_rules.py      # Rule validation tests
-│   ├── debug_signal.py    # Signal debugging tool
 │   └── backtest.py        # Backtesting script
-├── scripts/               # Standalone utilities
-│   ├── compare_symbols.py # Compare symbols
-│   ├── get_price.py       # Get current price
-│   └── list_products.py   # List available products
 ├── docs/                  # Documentation
 │   ├── RULES.md          # Detailed trading rules
 │   └── SETUP.md          # Setup instructions
@@ -54,103 +86,6 @@ rsi_divergence/
 └── README.md             # This file
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start & Deployment
 
-### 1. Installation
-
-```bash
-# Clone or navigate to the project directory
-cd RSI-Divergence
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 2. Configuration
-
-```bash
-# Copy the environment template
-copy .env.example .env
-
-# Edit .env with your Angel One credentials
-# REQUIRED: Add your Angel One API key, client ID, password, and TOTP secret
-```
-
-### 3. Run the Bot
-
-```bash
-# Run from project root
-python src/main.py
-```
-
-## ⚙️ Configuration
-
-Edit `config/settings.py` to customize:
-
-- **Symbol**: Trading symbol (default: `NIFTY 50`)
-- **Timeframe**: Candle timeframe (default: `FIFTEEN_MINUTE`)
-- **RSI Period**: RSI calculation period (default: `14`)
-- **Min/Max Candles**: Divergence distance (default: `3-7`)
-- **Check Interval**: Scan frequency in seconds (default: `60`)
-- **Market Hours**: 9:15 AM - 3:30 PM IST (Mon-Fri)
-
-## 📖 Documentation
-
-- [**RULES.md**](docs/RULES.md) - Detailed trading rules and examples
-- [**SETUP.md**](docs/SETUP.md) - Complete setup guide
-
-## 🧪 Testing
-
-Run the test suite to validate the strategy:
-
-```bash
-# Test rules
-python tests/test_rules.py
-
-# Debug a specific signal
-python tests/debug_signal.py
-
-# Run backtest
-python tests/backtest.py
-```
-
-## 📈 Supported Assets
-
-- **Nifty 50** (Default)
-- Can be extended to other NSE indices/stocks in `config/settings.py`
-
-## ⏰ Market Hours
-
-- **Trading Hours**: 9:15 AM - 3:30 PM IST
-- **Trading Days**: Monday to Friday
-- Bot automatically pauses when market is closed
-
-## 🔔 Alerts (Optional)
-
-To enable Telegram alerts, set these in your `.env` file:
-
-```
-TELEGRAM_BOT_TOKEN=your_token
-TELEGRAM_CHAT_ID=your_chat_id
-```
-
-## 📝 Logs
-
-Logs are stored in the `logs/` directory with detailed information about:
-- Signal detections
-- Price and RSI values
-- Divergence patterns
-- Errors and warnings
-
-## ⚠️ Disclaimer
-
-This is a trading tool for educational and research purposes. Always do your own research and use proper risk management when trading.
-
-## 📄 License
-
-This project is for personal use.
-
----
-
-**Status**: ✅ Production Ready
-**Version**: 1.0.0
+See [docs/PYTHONANYWHERE_SETUP.md](docs/PYTHONANYWHERE_SETUP.md) for deployment instructions.
