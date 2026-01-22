@@ -1,0 +1,7 @@
+requests
+pandas
+pandas_ta
+logzero
+python-dotenv
+smartapi-python
+pyotp
