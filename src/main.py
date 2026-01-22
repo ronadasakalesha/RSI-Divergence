@@ -56,13 +56,16 @@ def get_next_candle_close_time():
     For 5-minute candles: closes at :00, :05, :10, :15, etc.
     
     Returns:
-        datetime: The next candle close time
+        datetime: The next candle close time (IST-aware if possible, or naive IST)
     """
-    now = datetime.now()
+    # Use UTC + 5:30 for IST consistency across environments (Local Windows vs PythonAnywhere UTC)
+    now_utc = datetime.utcnow()
+    now_ist = now_utc + timedelta(hours=5, minutes=30)
+    
     interval_minutes = TIMEFRAME_MINUTES.get(TIMEFRAME, 5)
     
     # Calculate minutes since start of hour
-    current_minute = now.minute
+    current_minute = now_ist.minute
     
     # Find the next candle close minute
     next_close_minute = ((current_minute // interval_minutes) + 1) * interval_minutes
@@ -70,9 +73,9 @@ def get_next_candle_close_time():
     # Handle hour rollover
     if next_close_minute >= 60:
         next_close_minute = next_close_minute % 60
-        next_close_time = now.replace(minute=next_close_minute, second=0, microsecond=0) + timedelta(hours=1)
+        next_close_time = now_ist.replace(minute=next_close_minute, second=0, microsecond=0) + timedelta(hours=1)
     else:
-        next_close_time = now.replace(minute=next_close_minute, second=0, microsecond=0)
+        next_close_time = now_ist.replace(minute=next_close_minute, second=0, microsecond=0)
     
     return next_close_time
 
@@ -88,8 +91,11 @@ def wait_for_candle_close():
     next_close = get_next_candle_close_time()
     wait_until = next_close + timedelta(seconds=CANDLE_BUFFER_SECONDS)
     
-    now = datetime.now()
-    wait_seconds = (wait_until - now).total_seconds()
+    # Use IST for "now" to match "next_close" timezone
+    now_utc = datetime.utcnow()
+    now_ist = now_utc + timedelta(hours=5, minutes=30)
+    
+    wait_seconds = (wait_until - now_ist).total_seconds()
     
     if wait_seconds > 0:
         logger.info(f"[WAIT] Next candle closes at {next_close.strftime('%H:%M:%S')}")

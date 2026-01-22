@@ -140,7 +140,8 @@ class AngelOneApiHelper:
     
     def is_market_open(self):
         """
-        Check if Indian stock market is currently open
+        Check if Indian stock market is currently open.
+        Compatible with PythonAnywhere (UTC server).
         """
         from config.settings import (
             MARKET_OPEN_HOUR, MARKET_OPEN_MINUTE,
@@ -148,20 +149,25 @@ class AngelOneApiHelper:
             TRADING_DAYS
         )
         
-        now = datetime.now()
+        # PythonAnywhere uses UTC time. We need to convert it to IST.
+        # IST = UTC + 5:30
+        now_utc = datetime.utcnow()
+        now_ist = now_utc + timedelta(hours=5, minutes=30)
         
-        if now.weekday() not in TRADING_DAYS:
+        if now_ist.weekday() not in TRADING_DAYS:
             return False
         
-        market_open = now.replace(
+        market_open = now_ist.replace(
             hour=MARKET_OPEN_HOUR,
             minute=MARKET_OPEN_MINUTE,
-            second=0
+            second=0,
+            microsecond=0
         )
-        market_close = now.replace(
+        market_close = now_ist.replace(
             hour=MARKET_CLOSE_HOUR,
             minute=MARKET_CLOSE_MINUTE,
-            second=0
+            second=0,
+            microsecond=0
         )
         
-        return market_open <= now <= market_close
+        return market_open <= now_ist <= market_close
