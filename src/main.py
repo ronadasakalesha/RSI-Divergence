@@ -199,9 +199,11 @@ def main():
                     logger.info(f"   Confirmation: {signal['confirmation_time'].strftime('%Y-%m-%d %H:%M:%S')}")
                     logger.info("-" * 40)
                     if signal['type'] == 'BULLISH':
-                        logger.info(f"   ENTRY: BUY above {signal['entry_price']:.2f} (High of confirmation)")
+                        # logger.info(f"   ENTRY: BUY above {signal['entry_price']:.2f} (High of confirmation)")
+                        pass
                     else:
-                        logger.info(f"   ENTRY: SELL below {signal['entry_price']:.2f} (Low of confirmation)")
+                        # logger.info(f"   ENTRY: SELL below {signal['entry_price']:.2f} (Low of confirmation)")
+                        pass
                     logger.info("=" * 80)
                     
                     # Send Telegram Alert
@@ -211,9 +213,9 @@ def main():
                     if ENABLE_TELEGRAM_ALERTS:
                         # Construct message
                         trend_emoji = "🟢" if signal['type'] == "BULLISH" else "🔴"
-                        entry_msg = (f"BUY above {signal['entry_price']:.2f}" 
-                                   if signal['type'] == "BULLISH" 
-                                   else f"SELL below {signal['entry_price']:.2f}")
+                        # entry_msg = (f"BUY above {signal['entry_price']:.2f}" 
+                        #            if signal['type'] == "BULLISH" 
+                        #            else f"SELL below {signal['entry_price']:.2f}")
                         
                         bb_msg = ""
                         if signal.get('bb_touched'):
@@ -229,8 +231,8 @@ def main():
                             f"<b>Price:</b> {signal['p1_price']:.2f} → {signal['p2_price']:.2f}\n"
                             f"<b>RSI:</b> {signal['p1_rsi']:.2f} → {signal['p2_rsi']:.2f}\n"
                             f"{bb_msg}\n"
-                            f"--------------------------------\n"
-                            f"<b>ENTRY:</b> {entry_msg}"
+                            f"--------------------------------"
+                            # f"\n<b>ENTRY:</b> {entry_msg}"
                         )
                         
                         logger.info(f"[TELEGRAM] Sending alert...")

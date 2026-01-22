@@ -148,7 +148,7 @@ def check_divergence(df):
                     "confirmation_close": confirmation_candle['close'],
                     "confirmation_high": confirmation_candle['high'],
                     "confirmation_low": confirmation_candle['low'],
-                    "entry_price": confirmation_candle['low'],  # SELL at LOW of confirmation
+                    # "entry_price": confirmation_candle['low'],  # SELL at LOW of confirmation (INACTIVE)
                     "pattern": "Green-Green-Red",
                     "bb_touched": bb_touched
                 }
@@ -176,7 +176,7 @@ def check_divergence(df):
                     "confirmation_close": confirmation_candle['close'],
                     "confirmation_high": confirmation_candle['high'],
                     "confirmation_low": confirmation_candle['low'],
-                    "entry_price": confirmation_candle['high'],  # BUY at HIGH of confirmation
+                    # "entry_price": confirmation_candle['high'],  # BUY at HIGH of confirmation (INACTIVE)
                     "pattern": "Red-Red-Green",
                     "bb_touched": bb_touched
                 }
