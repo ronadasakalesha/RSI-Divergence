@@ -59,7 +59,8 @@ def get_next_candle_close_time():
         datetime: The next candle close time (IST-aware if possible, or naive IST)
     """
     # Use UTC + 5:30 for IST consistency across environments (Local Windows vs PythonAnywhere UTC)
-    now_utc = datetime.utcnow()
+    from datetime import timezone
+    now_utc = datetime.now(timezone.utc)
     now_ist = now_utc + timedelta(hours=5, minutes=30)
     
     interval_minutes = TIMEFRAME_MINUTES.get(TIMEFRAME, 5)
@@ -92,7 +93,8 @@ def wait_for_candle_close():
     wait_until = next_close + timedelta(seconds=CANDLE_BUFFER_SECONDS)
     
     # Use IST for "now" to match "next_close" timezone
-    now_utc = datetime.utcnow()
+    from datetime import timezone
+    now_utc = datetime.now(timezone.utc)
     now_ist = now_utc + timedelta(hours=5, minutes=30)
     
     wait_seconds = (wait_until - now_ist).total_seconds()

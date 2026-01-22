@@ -151,7 +151,8 @@ class AngelOneApiHelper:
         
         # PythonAnywhere uses UTC time. We need to convert it to IST.
         # IST = UTC + 5:30
-        now_utc = datetime.utcnow()
+        from datetime import timezone
+        now_utc = datetime.now(timezone.utc)
         now_ist = now_utc + timedelta(hours=5, minutes=30)
         
         if now_ist.weekday() not in TRADING_DAYS:
